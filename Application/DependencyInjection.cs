@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 using SimpleSalesAPI.Application.Services;
 using SimpleSalesAPI.Application.Services.Interfaces;
 using System.Reflection;
@@ -17,6 +18,8 @@ namespace SimpleSalesAPI.Application
 			services.AddScoped<IClienteService, ClienteService>();
 
 			services.AddScoped<ICategoriaService, CategoriaService>();
+
+			services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 			return services;
 		}

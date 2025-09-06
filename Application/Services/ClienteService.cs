@@ -1,4 +1,5 @@
-﻿using SimpleSalesAPI.Application.Dtos.Requests;
+﻿using FluentValidation;
+using SimpleSalesAPI.Application.Dtos.Requests;
 using SimpleSalesAPI.Application.Dtos.Responses;
 using SimpleSalesAPI.Application.Services.Interfaces;
 using SimpleSalesAPI.Domain.Exceptions;
@@ -12,17 +13,26 @@ using System.Threading.Tasks;
 
 namespace SimpleSalesAPI.Application.Services
 {
-	public class ClienteService : IClienteService
+	public class ClienteService(IUnitOfWork unitOfWork, IValidator<CriarClienteRequest> criarClienteValidator) : IClienteService
 	{
-		private readonly IUnitOfWork _unitOfWork;
+		private readonly IUnitOfWork _unitOfWork = unitOfWork ??
+			throw new ArgumentNullException(nameof(unitOfWork));
 
-		public ClienteService(IUnitOfWork unitOfWork)
-		{
-			_unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-		}
+		private readonly IValidator<CriarClienteRequest> _criarClienteValidator = criarClienteValidator ??
+			throw new ArgumentNullException(nameof(criarClienteValidator));
 
 		public async Task<ClienteResponse> CriarClienteAsync(CriarClienteRequest request)
 		{
+			var validationResult = await _criarClienteValidator.ValidateAsync(request);
+			if (!validationResult.IsValid)
+				throw new ValidationException(validationResult.Errors);
+
+			var emailExistente = await _unitOfWork.Repository<Cliente>()
+			 .GetFilterAsync(c => c.Email.ToLower() == request.Email.ToLower().Trim(), tracking: false);
+
+			if (emailExistente.Any())
+				throw new BusinessException($"Já existe um cliente cadastrado com o email {request.Email}");
+
 			var cliente = new Cliente
 			{
 				Nome = request.Nome,
@@ -86,13 +96,25 @@ namespace SimpleSalesAPI.Application.Services
 
 		public async Task<ClienteResponse> AtualizarClienteAsync(int id, CriarClienteRequest request)
 		{
+
+			var validationResult = await _criarClienteValidator.ValidateAsync(request);
+
+			if (!validationResult.IsValid)
+				throw new ValidationException(validationResult.Errors);
+
 			var cliente = await _unitOfWork.Repository<Cliente>().GetByIdAsync(id) ??
 				throw new NotFoundException($"Cliente com ID {id} não encontrado");
 
-			cliente.Nome = request.Nome;
-			cliente.Email = request.Email;
-			cliente.Telefone = request.Telefone;
-			cliente.Endereco = request.Endereco;
+			var emailExistente = await _unitOfWork.Repository<Cliente>()
+			   .GetFilterAsync(c => c.Email.ToLower() == request.Email.ToLower().Trim() && c.Id != id, tracking: false);
+
+			if (emailExistente.Any())
+				throw new BusinessException($"Já existe outro cliente cadastrado com o email {request.Email}");
+
+			cliente.Nome = request.Nome.Trim();
+			cliente.Email = request.Email.ToLower().Trim();
+			cliente.Telefone = request.Telefone.Trim();
+			cliente.Endereco = request.Endereco?.Trim() ?? string.Empty;
 
 			_unitOfWork.Repository<Cliente>().Update(cliente);
 			await _unitOfWork.CommitAsync();

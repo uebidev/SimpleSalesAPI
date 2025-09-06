@@ -1,4 +1,5 @@
-﻿using SimpleSalesAPI.Application.Dtos.Requests;
+﻿using FluentValidation;
+using SimpleSalesAPI.Application.Dtos.Requests;
 using SimpleSalesAPI.Application.Dtos.Responses;
 using SimpleSalesAPI.Application.Services.Interfaces;
 using SimpleSalesAPI.Domain.Exceptions;
@@ -12,22 +13,27 @@ using System.Threading.Tasks;
 
 namespace SimpleSalesAPI.Application.Services
 {
-	public class ProdutoService : IProdutoService
+	public class ProdutoService(IUnitOfWork unitOfWork, IValidator<CriarProdutoRequest> criarProdutoValidator, IValidator<AtualizarProdutoRequest> atualizarProdutoValidator) : IProdutoService
 	{
-		private readonly IUnitOfWork _unitOfWork;
+		private readonly IUnitOfWork _unitOfWork = unitOfWork
+			?? throw new ArgumentNullException(nameof(unitOfWork));
 
-		public ProdutoService(IUnitOfWork unitOfWork)
-		{
-			_unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-		}
+		private readonly IValidator<CriarProdutoRequest> _criarProdutoValidator = criarProdutoValidator
+			?? throw new ArgumentNullException(nameof(criarProdutoValidator));
+
+		private readonly IValidator<AtualizarProdutoRequest> _atualizarProdutoValidator = atualizarProdutoValidator
+			?? throw new ArgumentNullException(nameof(atualizarProdutoValidator));
+
 
 		public async Task<ProdutoResponse> CriarProdutoAsync(CriarProdutoRequest request)
 		{
-	
-			var categoria = await _unitOfWork.Repository<Categoria>().GetByIdAsync(request.CategoriaId);
-			if (categoria == null)
-				throw new NotFoundException($"Categoria com ID {request.CategoriaId} não encontrada");
+			var validationResult = await _criarProdutoValidator.ValidateAsync(request);
 
+			if (!validationResult.IsValid)
+				throw new ValidationException(validationResult.Errors);
+
+			var categoria = await _unitOfWork.Repository<Categoria>().GetByIdAsync(request.CategoriaId) ??
+				throw new NotFoundException($"Categoria com ID {request.CategoriaId} não encontrada");
 			var produto = new Produto
 			{
 				Nome = request.Nome,
@@ -140,12 +146,14 @@ namespace SimpleSalesAPI.Application.Services
 
 		public async Task<ProdutoResponse> AtualizarProdutoAsync(int id, AtualizarProdutoRequest request)
 		{
-			var produto = await _unitOfWork.Repository<Produto>().GetByIdAsync(id);
-			if (produto == null)
+			var validationResult = await _atualizarProdutoValidator.ValidateAsync(request);
+			if (!validationResult.IsValid)
+				throw new ValidationException(validationResult.Errors);
+
+			var produto = await _unitOfWork.Repository<Produto>().GetByIdAsync(id) ??
 				throw new NotFoundException($"Produto com ID {id} não encontrado");
 
-			var categoria = await _unitOfWork.Repository<Categoria>().GetByIdAsync(request.CategoriaId);
-			if (categoria == null)
+			var categoria = await _unitOfWork.Repository<Categoria>().GetByIdAsync(request.CategoriaId) ??
 				throw new NotFoundException($"Categoria com ID {request.CategoriaId} não encontrada");
 
 			produto.Nome = request.Nome;
@@ -162,30 +170,29 @@ namespace SimpleSalesAPI.Application.Services
 
 		public async Task AtivarProdutoAsync(int id)
 		{
-			var produto = await _unitOfWork.Repository<Produto>().GetByIdAsync(id);
-			if (produto == null)
+			var produto = await _unitOfWork.Repository<Produto>().GetByIdAsync(id) ??
 				throw new NotFoundException($"Produto com ID {id} não encontrado");
 
 			produto.Ativo = true;
+
 			_unitOfWork.Repository<Produto>().Update(produto);
 			await _unitOfWork.CommitAsync();
 		}
 
 		public async Task DesativarProdutoAsync(int id)
 		{
-			var produto = await _unitOfWork.Repository<Produto>().GetByIdAsync(id);
-			if (produto == null)
+			var produto = await _unitOfWork.Repository<Produto>().GetByIdAsync(id) ??
 				throw new NotFoundException($"Produto com ID {id} não encontrado");
 
 			produto.Ativo = false;
+
 			_unitOfWork.Repository<Produto>().Update(produto);
 			await _unitOfWork.CommitAsync();
 		}
 
 		public async Task ExcluirProdutoAsync(int id)
 		{
-			var produto = await _unitOfWork.Repository<Produto>().GetByIdAsync(id);
-			if (produto == null)
+			var produto = await _unitOfWork.Repository<Produto>().GetByIdAsync(id) ??
 				throw new NotFoundException($"Produto com ID {id} não encontrado");
 
 			_unitOfWork.Repository<Produto>().Remove(produto);

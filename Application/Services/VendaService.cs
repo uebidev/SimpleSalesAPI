@@ -1,4 +1,5 @@
-﻿using SimpleSalesAPI.Application.Dtos.Requests;
+﻿using FluentValidation;
+using SimpleSalesAPI.Application.Dtos.Requests;
 using SimpleSalesAPI.Application.Dtos.Responses;
 using SimpleSalesAPI.Application.Services.Interfaces;
 using SimpleSalesAPI.Domain.Enums;
@@ -13,13 +14,16 @@ using System.Threading.Tasks;
 
 namespace SimpleSalesAPI.Application.Services
 {
-	public class VendaService(IUnitOfWork unitOfWork) : IVendaService
+	public class VendaService(IUnitOfWork unitOfWork, IValidator<CriarVendaRequest> criarVendaValidator) : IVendaService
 	{
 		private readonly IUnitOfWork _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-
+		private readonly IValidator<CriarVendaRequest> _criarVendaValidator = criarVendaValidator ?? throw new ArgumentNullException(nameof(criarVendaValidator));
 		public async Task<VendaResponse> CriarVendaAsync(CriarVendaRequest request)
 		{
-	
+			var validationResult = await _criarVendaValidator.ValidateAsync(request);
+			if (!validationResult.IsValid)
+				throw new ValidationException(validationResult.Errors);
+
 			var cliente = await _unitOfWork.Repository<Cliente>().GetByIdAsync(request.ClienteId) ??
 				throw new NotFoundException($"Cliente com ID {request.ClienteId} não encontrado");
 
@@ -41,7 +45,7 @@ namespace SimpleSalesAPI.Application.Services
 				ClienteId = request.ClienteId,
 				DataVenda = DateTime.UtcNow,
 				Status = StatusVenda.Pendente,
-				Itens = new List<ItemVenda>()
+				Itens = []
 			};
 
 			decimal valorTotal = 0;
@@ -191,8 +195,7 @@ namespace SimpleSalesAPI.Application.Services
 
 		public async Task ConfirmarVendaAsync(int id)
 		{
-			var venda = await _unitOfWork.Repository<Venda>().GetByIdAsync(id);
-			if (venda == null)
+			var venda = await _unitOfWork.Repository<Venda>().GetByIdAsync(id) ??
 				throw new NotFoundException($"Venda com ID {id} não encontrada");
 
 			if (venda.Status != StatusVenda.Pendente)
@@ -207,9 +210,8 @@ namespace SimpleSalesAPI.Application.Services
 		{
 			var vendas = await _unitOfWork.Repository<Venda>()
 				.GetFilterAsync(v => v.Id == id, tracking: true, v => v.Itens);
-			var venda = vendas.FirstOrDefault();
 
-			if (venda == null)
+			var venda = vendas.FirstOrDefault() ??
 				throw new NotFoundException($"Venda com ID {id} não encontrada");
 
 			if (venda.Status == StatusVenda.Entregue)
@@ -233,8 +235,7 @@ namespace SimpleSalesAPI.Application.Services
 
 		public async Task EntregarVendaAsync(int id)
 		{
-			var venda = await _unitOfWork.Repository<Venda>().GetByIdAsync(id);
-			if (venda == null)
+			var venda = await _unitOfWork.Repository<Venda>().GetByIdAsync(id) ??
 				throw new NotFoundException($"Venda com ID {id} não encontrada");
 
 			if (venda.Status != StatusVenda.Confirmada)

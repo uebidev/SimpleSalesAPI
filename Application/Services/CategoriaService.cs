@@ -1,4 +1,5 @@
-﻿using SimpleSalesAPI.Application.Dtos.Requests;
+﻿using FluentValidation;
+using SimpleSalesAPI.Application.Dtos.Requests;
 using SimpleSalesAPI.Application.Dtos.Responses;
 using SimpleSalesAPI.Application.Services.Interfaces;
 using SimpleSalesAPI.Domain.Exceptions;
@@ -13,12 +14,27 @@ using System.Threading.Tasks;
 
 namespace SimpleSalesAPI.Application.Services
 {
-	public class CategoriaService(IUnitOfWork unitOfWork) : ICategoriaService
+	public class CategoriaService(IUnitOfWork unitOfWork, IValidator<CriarCategoriaRequest> criarCategoriaValidator) : ICategoriaService
 	{
-		private readonly IUnitOfWork _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+		private readonly IUnitOfWork _unitOfWork = unitOfWork ??
+			throw new ArgumentNullException(nameof(unitOfWork));
+
+		private readonly IValidator<CriarCategoriaRequest> _criarCategoriaValidator = criarCategoriaValidator ??
+		throw new ArgumentNullException(nameof(criarCategoriaValidator));
 
 		public async Task<CategoriaResponse> CriarCategoriaAsync(CriarCategoriaRequest request)
 		{
+			var validationResult = await _criarCategoriaValidator.ValidateAsync(request);
+
+			if (!validationResult.IsValid)
+				throw new ValidationException(validationResult.Errors);
+
+			var nomeExistente = await _unitOfWork.Repository<Categoria>()
+			  .GetFilterAsync(c => c.Nome.ToLower() == request.Nome.ToLower().Trim(), tracking: false);
+
+			if (nomeExistente.Any())
+				throw new BusinessException($"Já existe uma categoria com o nome '{request.Nome}'");
+
 			var categoria = new Categoria
 			{
 				Nome = request.Nome,
@@ -33,7 +49,6 @@ namespace SimpleSalesAPI.Application.Services
 
 		public async Task<CategoriaResponse?> ObterCategoriaPorIdAsync(int id)
 		{
-			
 			var categoria = await _unitOfWork.Repository<Categoria>().GetByIdAsync(id);
 
 			return categoria == null
@@ -60,11 +75,22 @@ namespace SimpleSalesAPI.Application.Services
 
 		public async Task<CategoriaResponse> AtualizarCategoriaAsync(int id, CriarCategoriaRequest request)
 		{
+			var validationResult = await _criarCategoriaValidator.ValidateAsync(request);
+
+			if (!validationResult.IsValid)
+				throw new ValidationException(validationResult.Errors);
+
 			var categoria = await _unitOfWork.Repository<Categoria>().GetByIdAsync(id) ??
 				throw new NotFoundException($"Categoria com ID {id} não encontrada");
 
-			categoria.Nome = request.Nome;
-			categoria.Descricao = request.Descricao;
+			var nomeExistente = await _unitOfWork.Repository<Categoria>()
+			   .GetFilterAsync(c => c.Nome.ToLower() == request.Nome.ToLower().Trim() && c.Id != id, tracking: false);
+
+			if (nomeExistente.Any())
+				throw new BusinessException($"Já existe outra categoria com o nome '{request.Nome}'");
+
+			categoria.Nome = request.Nome.Trim();
+			categoria.Descricao = request.Descricao?.Trim() ?? string.Empty;
 
 			_unitOfWork.Repository<Categoria>().Update(categoria);
 			await _unitOfWork.CommitAsync();
