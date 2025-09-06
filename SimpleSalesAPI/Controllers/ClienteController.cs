@@ -93,4 +93,4 @@ namespace SimpleSalesAPI.Controllers
 			return NoContent();
 		}
 	}
-}
+}  
