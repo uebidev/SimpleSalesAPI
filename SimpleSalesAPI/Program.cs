@@ -1,5 +1,6 @@
 
 using MySqlConnector;
+using SimpleSalesAPI.Application;
 using SimpleSalesAPI.Infrastructure;
 
 namespace SimpleSalesAPI
@@ -14,7 +15,7 @@ namespace SimpleSalesAPI
 			
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
-			//builder.Services.AddApplication();
+			builder.Services.AddApplication();
 
 			builder.Services.AddInfrastructure(builder.Configuration);
 			var app = builder.Build();

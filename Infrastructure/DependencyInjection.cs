@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleSalesAPI.Infrastructure.Data.Context;
+using SimpleSalesAPI.Infrastructure.Data.Repositories;
+using SimpleSalesAPI.Infrastructure.Data.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +22,9 @@ namespace SimpleSalesAPI.Infrastructure
 			var connectionString = configuration.GetConnectionString("DefaultConnection");
 			services.AddDbContext<AppDbContext>(options =>
 				options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+			services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+			services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 			return services;
 		}

@@ -8,8 +8,12 @@
 
   <ItemGroup>
     <Folder Include="Interfaces\" />
-    <Folder Include="Mappings\" />
-    <Folder Include="Services\" />
+    <Folder Include="Validators\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\SimpleSalesAPI.Domain.csproj" />
+    <ProjectReference Include="..\Infrastructure\SimpleSalesAPI.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
