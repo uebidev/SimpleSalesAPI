@@ -18,6 +18,7 @@ namespace SimpleSalesAPI.Application
 			services.AddScoped<IClienteService, ClienteService>();
 
 			services.AddScoped<ICategoriaService, CategoriaService>();
+		
 
 			services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 

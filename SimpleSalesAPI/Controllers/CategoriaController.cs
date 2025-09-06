@@ -10,19 +10,15 @@ namespace SimpleSalesAPI.Controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class CategoriasController : ControllerBase
+	public class CategoriasController(ICategoriaService categoriaService, IProdutoService produtoService) : ControllerBase
 	{
-		private readonly ICategoriaService _categoriaService;
-		private readonly IProdutoService _produtoService;
-
-		public CategoriasController(ICategoriaService categoriaService, IProdutoService produtoService)
-		{
-			_categoriaService = categoriaService ?? throw new ArgumentNullException(nameof(categoriaService));
-			_produtoService = produtoService ?? throw new ArgumentNullException(nameof(produtoService));
-		}
+		private readonly ICategoriaService _categoriaService = categoriaService ??
+			throw new ArgumentNullException(nameof(categoriaService));
+		private readonly IProdutoService _produtoService = produtoService ??
+			throw new ArgumentNullException(nameof(produtoService));
 
 		/// <summary>
-		/// Lista todas as categorias - Direto ao ponto!
+		/// Lista todas as categorias
 		/// </summary>
 		[HttpGet]
 		public async Task<ActionResult<List<CategoriaResponse>>> GetAll()
@@ -32,7 +28,7 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Busca categoria por ID - Sem firulas desnecessárias!
+		/// Busca categoria por ID 
 		/// </summary>
 		[HttpGet("{id}")]
 		public async Task<ActionResult<CategoriaResponse>> GetById(int id)
@@ -42,12 +38,11 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Lista produtos da categoria - Composição inteligente de Services!
+		/// Lista produtos da categoria 
 		/// </summary>
 		[HttpGet("{id}/produtos")]
 		public async Task<ActionResult<List<ProdutoResponse>>> GetProdutos(int id)
 		{
-			// Verifica se categoria existe (validação no lugar certo!)
 			var categoria = await _categoriaService.ObterCategoriaPorIdAsync(id);
 			if (categoria == null)
 				return NotFound("Categoria não encontrada");
@@ -57,62 +52,33 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Cria categoria - Request simples e objetivo!
+		/// Cria categoria 
 		/// </summary>
 		[HttpPost]
 		public async Task<ActionResult<CategoriaResponse>> Create([FromBody] CriarCategoriaRequest request)
 		{
-			try
-			{
-				var categoria = await _categoriaService.CriarCategoriaAsync(request);
-				return CreatedAtAction(nameof(GetById), new { id = categoria.Id }, categoria);
-			}
-			catch (BusinessException ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			var categoria = await _categoriaService.CriarCategoriaAsync(request);
+			return CreatedAtAction(nameof(GetById), new { id = categoria.Id }, categoria);
 		}
 
 		/// <summary>
-		/// Atualiza categoria - Consistência na API!
+		/// Atualiza categoria
 		/// </summary>
 		[HttpPut("{id}")]
 		public async Task<ActionResult<CategoriaResponse>> Update(int id, [FromBody] CriarCategoriaRequest request)
 		{
-			try
-			{
-				var categoria = await _categoriaService.AtualizarCategoriaAsync(id, request);
-				return Ok(categoria);
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
-			catch (BusinessException ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			var categoria = await _categoriaService.AtualizarCategoriaAsync(id, request);
+			return Ok(categoria);
 		}
 
 		/// <summary>
-		/// Exclui categoria - Service decide se pode ou não!
+		/// Exclui categoria
 		/// </summary>
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> Delete(int id)
 		{
-			try
-			{
-				await _categoriaService.ExcluirCategoriaAsync(id);
-				return NoContent();
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
-			catch (BusinessException ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			await _categoriaService.ExcluirCategoriaAsync(id);
+			return NoContent();
 		}
 	}
 }

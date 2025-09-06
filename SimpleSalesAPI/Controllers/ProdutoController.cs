@@ -10,17 +10,13 @@ namespace SimpleSalesAPI.Controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class ProdutosController : ControllerBase
+	public class ProdutosController(IProdutoService produtoService) : ControllerBase
 	{
-		private readonly IProdutoService _produtoService;
-
-		public ProdutosController(IProdutoService produtoService)
-		{
-			_produtoService = produtoService ?? throw new ArgumentNullException(nameof(produtoService));
-		}
+		private readonly IProdutoService _produtoService = produtoService ??
+			throw new ArgumentNullException(nameof(produtoService));
 
 		/// <summary>
-		/// Lista produtos ativos - DTOs com contexto de categoria!
+		/// Lista produtos ativos
 		/// </summary>
 		[HttpGet]
 		public async Task<ActionResult<List<ProdutoResponse>>> GetAll()
@@ -30,7 +26,7 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Busca produto por ID - Com categoria incluída automaticamente!
+		/// Busca produto por ID
 		/// </summary>
 		[HttpGet("{id}")]
 		public async Task<ActionResult<ProdutoResponse>> GetById(int id)
@@ -40,7 +36,7 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Lista produtos por categoria - Relationship navigation no Service!
+		/// Lista produtos por categoria
 		/// </summary>
 		[HttpGet("categoria/{categoriaId}")]
 		public async Task<ActionResult<List<ProdutoResponse>>> GetByCategoria(int categoriaId)
@@ -50,7 +46,7 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Pesquisa produtos - Query complexa delegada ao Service!
+		/// Pesquisa produtos 
 		/// </summary>
 		[HttpGet("search")]
 		public async Task<ActionResult<List<ProdutoResponse>>> Search(
@@ -63,7 +59,7 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Produtos com baixo estoque - Analytics no Service onde pertencem!
+		/// Produtos com baixo estoque 
 		/// </summary>
 		[HttpGet("baixo-estoque")]
 		public async Task<ActionResult<List<ProdutoResponse>>> GetBaixoEstoque([FromQuery] int limite = 10)
@@ -73,96 +69,54 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Cria produto - Request DTO específico para criação!
+		/// Cria produto 
 		/// </summary>
 		[HttpPost]
 		public async Task<ActionResult<ProdutoResponse>> Create([FromBody] CriarProdutoRequest request)
 		{
-			try
-			{
-				var produto = await _produtoService.CriarProdutoAsync(request);
-				return CreatedAtAction(nameof(GetById), new { id = produto.Id }, produto);
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
-			catch (BusinessException ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			var produto = await _produtoService.CriarProdutoAsync(request);
+			return CreatedAtAction(nameof(GetById), new { id = produto.Id }, produto);
 		}
 
 		/// <summary>
-		/// Atualiza produto - DTO diferente para update!
+		/// Atualiza produto
 		/// </summary>
 		[HttpPut("{id}")]
 		public async Task<ActionResult<ProdutoResponse>> Update(int id, [FromBody] AtualizarProdutoRequest request)
 		{
-			try
-			{
-				var produto = await _produtoService.AtualizarProdutoAsync(id, request);
-				return Ok(produto);
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
-			catch (BusinessException ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			var produto = await _produtoService.AtualizarProdutoAsync(id, request);
+			return Ok(produto);
 		}
 
 		/// <summary>
-		/// Ativa produto - PATCH para mudança de estado específica!
+		/// Ativa produto 
 		/// </summary>
 		[HttpPatch("{id}/ativar")]
 		public async Task<IActionResult> Ativar(int id)
 		{
-			try
-			{
-				await _produtoService.AtivarProdutoAsync(id);
-				return NoContent();
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
+			await _produtoService.AtivarProdutoAsync(id);
+			return NoContent();
 		}
 
 		/// <summary>
-		/// Desativa produto - Soft delete como deve ser!
+		/// Desativa produto
 		/// </summary>
 		[HttpPatch("{id}/desativar")]
 		public async Task<IActionResult> Desativar(int id)
 		{
-			try
-			{
-				await _produtoService.DesativarProdutoAsync(id);
-				return NoContent();
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
+
+			await _produtoService.DesativarProdutoAsync(id);
+			return NoContent();
 		}
 
 		/// <summary>
-		/// Exclui produto - Hard delete quando necessário!
+		/// Exclui produto
 		/// </summary>
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> Delete(int id)
 		{
-			try
-			{
-				await _produtoService.ExcluirProdutoAsync(id);
-				return NoContent();
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
+			await _produtoService.ExcluirProdutoAsync(id);
+			return NoContent();
 		}
 	}
 }

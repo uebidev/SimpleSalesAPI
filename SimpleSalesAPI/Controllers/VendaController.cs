@@ -11,17 +11,13 @@ namespace SimpleSalesAPI.Controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class VendasController : ControllerBase
+	public class VendasController(IVendaService vendaService) : ControllerBase
 	{
-		private readonly IVendaService _vendaService;
-
-		public VendasController(IVendaService vendaService)
-		{
-			_vendaService = vendaService ?? throw new ArgumentNullException(nameof(vendaService));
-		}
+		private readonly IVendaService _vendaService = vendaService ??
+			throw new ArgumentNullException(nameof(vendaService));
 
 		/// <summary>
-		/// Lista todas as vendas - Simples como deveria ser!
+		/// Lista todas as vendas 
 		/// </summary>
 		[HttpGet]
 		public async Task<ActionResult<List<VendaResponse>>> GetAll()
@@ -31,7 +27,7 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Busca venda por ID - 3 linhas, não 50!
+		/// Busca venda por ID 
 		/// </summary>
 		[HttpGet("{id}")]
 		public async Task<ActionResult<VendaResponse>> GetById(int id)
@@ -41,7 +37,7 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Lista vendas por cliente - Controller que sabe seu lugar!
+		/// Lista vendas por cliente 
 		/// </summary>
 		[HttpGet("cliente/{clienteId}")]
 		public async Task<ActionResult<List<VendaResponse>>> GetByCliente(int clienteId)
@@ -51,7 +47,7 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Lista vendas por status - Enum binding automático (que maravilha!)
+		/// Lista vendas por status 
 		/// </summary>
 		[HttpGet("status/{status}")]
 		public async Task<ActionResult<List<VendaResponse>>> GetByStatus(StatusVenda status)
@@ -61,7 +57,7 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Lista vendas por período - Query parameters como gente civilizada!
+		/// Lista vendas por período 
 		/// </summary>
 		[HttpGet("periodo")]
 		public async Task<ActionResult<List<VendaResponse>>> GetByPeriodo(
@@ -73,112 +69,54 @@ namespace SimpleSalesAPI.Controllers
 		}
 
 		/// <summary>
-		/// Cria venda - Finalmente usando DTO adequado!
+		/// Cria venda
 		/// </summary>
 		[HttpPost]
 		public async Task<ActionResult<VendaResponse>> Create([FromBody] CriarVendaRequest request)
 		{
-			try
-			{
-				var venda = await _vendaService.CriarVendaAsync(request);
-				return CreatedAtAction(nameof(GetById), new { id = venda.Id }, venda);
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
-			catch (InsufficientStockException ex)
-			{
-				return BadRequest(ex.Message);
-			}
-			catch (BusinessException ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			var venda = await _vendaService.CriarVendaAsync(request);
+			return CreatedAtAction(nameof(GetById), new { id = venda.Id }, venda);
 		}
 
 		/// <summary>
-		/// Confirma venda - PATCH para mudança de estado (REST correto!)
+		/// Confirma venda
 		/// </summary>
 		[HttpPatch("{id}/confirmar")]
 		public async Task<IActionResult> Confirmar(int id)
 		{
-			try
-			{
-				await _vendaService.ConfirmarVendaAsync(id);
-				return NoContent();
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
-			catch (BusinessException ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			await _vendaService.ConfirmarVendaAsync(id);
+			return NoContent();
 		}
 
 		/// <summary>
-		/// Cancela venda - Service cuida da lógica de estoque!
+		/// Cancela venda
 		/// </summary>
 		[HttpPatch("{id}/cancelar")]
 		public async Task<IActionResult> Cancelar(int id)
 		{
-			try
-			{
-				await _vendaService.CancelarVendaAsync(id);
-				return NoContent();
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
-			catch (BusinessException ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			await _vendaService.CancelarVendaAsync(id);
+			return NoContent();
 		}
 
 		/// <summary>
-		/// Marca como entregue - Controller limpo como lágrima!
+		/// Marca como entregue 
 		/// </summary>
 		[HttpPatch("{id}/entregar")]
 		public async Task<IActionResult> Entregar(int id)
 		{
-			try
-			{
-				await _vendaService.EntregarVendaAsync(id);
-				return NoContent();
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
-			catch (BusinessException ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			await _vendaService.EntregarVendaAsync(id);
+			return NoContent();
 		}
 
 		/// <summary>
-		/// Exclui venda - Validações no Service onde pertencem!
+		/// Exclui venda 
 		/// </summary>
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> Delete(int id)
 		{
-			try
-			{
-				await _vendaService.ExcluirVendaAsync(id);
-				return NoContent();
-			}
-			catch (NotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
-			catch (BusinessException ex)
-			{
-				return BadRequest(ex.Message);
-			}
+
+			await _vendaService.ExcluirVendaAsync(id);
+			return NoContent();
 		}
 	}
 }

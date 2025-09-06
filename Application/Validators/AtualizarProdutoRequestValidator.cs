@@ -20,8 +20,7 @@ namespace SimpleSalesAPI.Application.Validators
 				.Length(2, 100).WithMessage("Nome deve ter entre 2 e 100 caracteres");
 
 			RuleFor(x => x.Preco)
-				.GreaterThan(0).WithMessage("Preço deve ser maior que zero")
-				.PrecisionScale(2, 8, true);
+				.GreaterThan(0).WithMessage("Preço deve ser maior que zero");
 
 			RuleFor(x => x.EstoqueAtual)
 				.GreaterThanOrEqualTo(0).WithMessage("Estoque não pode ser negativo");

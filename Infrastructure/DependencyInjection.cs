@@ -18,10 +18,22 @@ namespace SimpleSalesAPI.Infrastructure
 			this IServiceCollection services,
 			IConfiguration configuration)
 		{
-
 			var connectionString = configuration.GetConnectionString("DefaultConnection");
 			services.AddDbContext<AppDbContext>(options =>
-				options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+			{
+				options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString),
+					mySqlOptions =>
+					{
+						mySqlOptions.MigrationsAssembly("SimpleSalesAPI.Infrastructure");
+						mySqlOptions.EnableRetryOnFailure(
+							maxRetryCount: 3);
+					});
+				if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+				{
+					options.EnableSensitiveDataLogging();
+					options.EnableDetailedErrors();
+				}
+			});
 
 			services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 			services.AddScoped<IUnitOfWork, UnitOfWork>();

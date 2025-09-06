@@ -37,7 +37,6 @@ namespace SimpleSalesAPI.Application.Validators
 				.WithMessage("Preço deve ser maior que zero")
 				.LessThanOrEqualTo(999999.99m)
 				.WithMessage("Preço não pode exceder R$ 999.999,99")
-				.PrecisionScale(2, 8,true) // 6 dígitos antes, 2 depois
 				.WithMessage("Preço deve ter no máximo 2 casas decimais")
 				.WithErrorCode("INVALID_PRODUTO_PRECO");
 
