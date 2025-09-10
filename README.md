@@ -19,7 +19,7 @@ SimpleSalesAPI implementa um sistema de gestão de vendas seguindo rigorosamente
 ✅ **FluentValidation** - Sistema de validação com regras de negócio estruturadas  
 ✅ **Exception Handling Centralizado** - Middleware global com Problem Details compliance  
 ✅ **Structured Logging** - Serilog com enrichers, correlation tracking e performance monitoring  
-✅ **Rate Limiting** - Proteção contra abuse configurada  
+✅ **Rate Limiting** - Proteção contra abuse configurada  (esqueci de terminar)
 ✅ **Response Compression** - Otimização de payload  
 
 ## 🏗️ Arquitetura
