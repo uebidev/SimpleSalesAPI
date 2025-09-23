@@ -26,7 +26,7 @@ namespace SimpleSalesAPI
 			
 				builder.Services.AddApplication();
 				builder.Services.AddInfrastructure(builder.Configuration);
-
+				 
 				// CORS
 				builder.Services.AddCors(options =>
 				{
