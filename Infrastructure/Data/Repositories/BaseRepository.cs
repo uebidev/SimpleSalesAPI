@@ -23,7 +23,7 @@ namespace SimpleSalesAPI.Infrastructure.Data.Repositories
 
 		public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
 
-		public async Task<T> GetByIdAsync(object id) => await _dbSet.FindAsync(id);
+		public async Task<T> GetByIdAsync(int id) => await _dbSet.FindAsync(id);
 
 
 		public async Task<IEnumerable<T>> GetFilterAsync(Expression<Func<T, bool>> predicate, bool tracking = false, params Expression<Func<T, object>>[] includes)
