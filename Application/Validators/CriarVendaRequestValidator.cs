@@ -15,13 +15,11 @@ namespace SimpleSalesAPI.Application.Validators
 	{
 		public CriarVendaRequestValidator()
 		{
-			// Validação do Cliente
 			RuleFor(x => x.ClienteId)
 				.GreaterThan(0)
 				.WithMessage("ID do cliente deve ser um valor positivo válido")
 				.WithErrorCode("INVALID_CLIENTE_ID");
 
-			// Validação dos Itens 
 			RuleFor(x => x.Itens)
 				.NotNull()
 				.WithMessage("Lista de itens não pode ser nula")
@@ -32,11 +30,10 @@ namespace SimpleSalesAPI.Application.Validators
 				.Must(HaveUniqueProducts)
 				.WithMessage("Não é permitido produtos duplicados na mesma venda");
 
-			// Validação individual de cada item
 			RuleForEach(x => x.Itens)
 				.SetValidator(new ItemVendaRequestValidator());
 
-			// Regra de negócio: máximo 50 itens por venda
+			// máximo 50 itens por venda
 			RuleFor(x => x.Itens)
 				.Must(itens => itens.Count <= 50)
 				.WithMessage("Venda não pode ter mais de 50 itens")

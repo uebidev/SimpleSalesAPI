@@ -34,7 +34,6 @@ namespace SimpleSalesAPI.Infrastructure.Data.Configurations
 			builder.Property(c => c.Endereco)
 				.HasMaxLength(200);
 
-			// ÍNDICES PARA PERFORMANCE
 			builder.HasIndex(c => c.Email)
 				.IsUnique()
 				.HasDatabaseName("IX_Clientes_Email");

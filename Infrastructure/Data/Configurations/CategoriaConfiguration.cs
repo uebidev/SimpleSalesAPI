@@ -26,12 +26,10 @@ namespace SimpleSalesAPI.Infrastructure.Data.Configurations
 			builder.Property(c => c.Descricao)
 				.HasMaxLength(200);
 
-			// Índice único para nome
 			builder.HasIndex(c => c.Nome)
 				.IsUnique()
 				.HasDatabaseName("IX_Categorias_Nome");
 
-			// Relacionamento com Produtos
 			builder.HasMany(c => c.Produtos)
 				.WithOne(p => p.Categoria)
 				.HasForeignKey(p => p.CategoriaId)

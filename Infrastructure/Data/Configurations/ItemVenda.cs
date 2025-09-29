@@ -41,12 +41,11 @@ namespace SimpleSalesAPI.Infrastructure.Data.Configurations
 			builder.HasIndex(i => i.ProdutoId)
 				.HasDatabaseName("IX_ItensVenda_Produto");
 
-			// Índice único composto - Produto único por venda
 			builder.HasIndex(i => new { i.VendaId, i.ProdutoId })
 				.IsUnique()
 				.HasDatabaseName("IX_ItensVenda_Venda_Produto");
 
-			// Relacionamentos
+
 			builder.HasOne(i => i.Venda)
 				.WithMany(v => v.Itens)
 				.HasForeignKey(i => i.VendaId)

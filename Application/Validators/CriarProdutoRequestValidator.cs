@@ -15,7 +15,6 @@ namespace SimpleSalesAPI.Application.Validators
 	{
 		public CriarProdutoRequestValidator()
 		{
-			// Nome do produto
 			RuleFor(x => x.Nome)
 				.NotEmpty()
 				.WithMessage("Nome do produto é obrigatório")
@@ -25,13 +24,11 @@ namespace SimpleSalesAPI.Application.Validators
 				.WithMessage("Nome contém caracteres inválidos")
 				.WithErrorCode("INVALID_PRODUTO_NOME");
 
-			// Descrição
 			RuleFor(x => x.Descricao)
 				.MaximumLength(500)
 				.WithMessage("Descrição não pode exceder 500 caracteres")
 				.WithErrorCode("INVALID_PRODUTO_DESCRICAO");
 
-			// Preço
 			RuleFor(x => x.Preco)
 				.GreaterThan(0)
 				.WithMessage("Preço deve ser maior que zero")
@@ -40,7 +37,7 @@ namespace SimpleSalesAPI.Application.Validators
 				.WithMessage("Preço deve ter no máximo 2 casas decimais")
 				.WithErrorCode("INVALID_PRODUTO_PRECO");
 
-			// Estoque
+
 			RuleFor(x => x.EstoqueAtual)
 				.GreaterThanOrEqualTo(0)
 				.WithMessage("Estoque não pode ser negativo")
@@ -48,7 +45,7 @@ namespace SimpleSalesAPI.Application.Validators
 				.WithMessage("Estoque não pode exceder 999.999 unidades")
 				.WithErrorCode("INVALID_PRODUTO_ESTOQUE");
 
-			// Categoria 
+	
 			RuleFor(x => x.CategoriaId)
 				.GreaterThan(0)
 				.WithMessage("Categoria deve ser válida")

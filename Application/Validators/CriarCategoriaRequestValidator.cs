@@ -15,7 +15,7 @@ namespace SimpleSalesAPI.Application.Validators
 	{
 		public CriarCategoriaRequestValidator()
 		{
-			// Nome da categoria 
+
 			RuleFor(x => x.Nome)
 				.NotEmpty()
 				.WithMessage("Nome da categoria é obrigatório")
@@ -25,7 +25,7 @@ namespace SimpleSalesAPI.Application.Validators
 				.WithMessage("Nome deve conter apenas letras, espaços e hífens")
 				.WithErrorCode("INVALID_CATEGORIA_NOME");
 
-			// Descrição
+		
 			RuleFor(x => x.Descricao)
 				.MaximumLength(200)
 				.WithMessage("Descrição não pode exceder 200 caracteres")
