@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\SimpleSalesAPI.Domain.csproj" />
-    <ProjectReference Include="..\Infrastructure\SimpleSalesAPI.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
