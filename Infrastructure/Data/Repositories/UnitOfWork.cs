@@ -1,39 +1,37 @@
-﻿using SimpleSalesAPI.Infrastructure.Data.Context;
-using SimpleSalesAPI.Infrastructure.Data.Repositories.Interfaces;
+using SimpleSalesAPI.Domain.Repositories;
+using SimpleSalesAPI.Infrastructure.Data.Context;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SimpleSalesAPI.Infrastructure.Data.Repositories
 {
-	public class UnitOfWork(AppDbContext context) : IUnitOfWork
-	{
-		private readonly Dictionary<Type, object> _repositories = [];
-		private AppDbContext _context = context;
+        public class UnitOfWork(AppDbContext context) : IUnitOfWork
+        {
+                private readonly Dictionary<Type, object> _repositories = [];
+                private AppDbContext _context = context;
 
-		public IBaseRepository<T> Repository<T>() where T : class
-		{
-			if (_repositories.ContainsKey(typeof(T)))
-				return (IBaseRepository<T>)_repositories[typeof(T)];
+                public IBaseRepository<T> Repository<T>() where T : class
+                {
+                        if (_repositories.TryGetValue(typeof(T), out var repository))
+                                return (IBaseRepository<T>)repository;
 
-			var repository = new BaseRepository<T>(_context);
+                        var newRepository = new BaseRepository<T>(_context);
 
-			_repositories[typeof(T)] = repository;
+                        _repositories[typeof(T)] = newRepository;
 
-			return repository;
-		}
+                        return newRepository;
+                }
 
-		public async Task<int> CommitAsync() => await _context.SaveChangesAsync();
-		public void Dispose() => _context.Dispose();
-		public async ValueTask DisposeAsync()
-		{
-			if (_context != null)
-			{
-				await _context.DisposeAsync();
-				_context = null;
-			}
-		}
-	}
+                public async Task<int> CommitAsync() => await _context.SaveChangesAsync();
+                public void Dispose() => _context.Dispose();
+                public async ValueTask DisposeAsync()
+                {
+                        if (_context != null)
+                        {
+                                await _context.DisposeAsync();
+                                _context = null;
+                        }
+                }
+        }
 }

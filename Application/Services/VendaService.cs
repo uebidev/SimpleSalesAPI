@@ -6,7 +6,7 @@ using SimpleSalesAPI.Application.Services.Interfaces;
 using SimpleSalesAPI.Domain.Enums;
 using SimpleSalesAPI.Domain.Exceptions;
 using SimpleSalesAPI.Domain.Models;
-using SimpleSalesAPI.Infrastructure.Data.Repositories.Interfaces;
+using SimpleSalesAPI.Domain.Repositories;
 using InvalidOperationException = SimpleSalesAPI.Domain.Exceptions.InvalidOperationException;
 
 namespace SimpleSalesAPI.Application.Services
@@ -139,74 +139,37 @@ namespace SimpleSalesAPI.Application.Services
 				   throw new BusinessException("Erro ao recuperar venda criada");
 		}
 
-		public async Task<VendaResponse?> ObterVendaPorIdAsync(int id)
-		{
-			_logger.LogDebug("Buscando venda {VendaId}", id);
+                public async Task<VendaResponse?> ObterVendaPorIdAsync(int id)
+                {
+                        _logger.LogDebug("Buscando venda {VendaId}", id);
 
-			var vendas = await _unitOfWork.Repository<Venda>()
-				.GetFilterAsync(v => v.Id == id, tracking: false,
-					v => v.Cliente,
-					v => v.Itens);
+                        var vendas = await _unitOfWork.Repository<Venda>()
+                                .QueryAsync(query => ProjectVendaResponse(
+                                        query.AsNoTracking().Where(v => v.Id == id)));
 
-			var venda = vendas.FirstOrDefault();
-			if (venda == null)
-			{
-				_logger.LogWarning("Venda {VendaId} não encontrada", id);
-				return null;
-			}
+                        var venda = vendas.FirstOrDefault();
+                        if (venda == null)
+                        {
+                                _logger.LogWarning("Venda {VendaId} não encontrada", id);
+                                return null;
+                        }
 
-			var produtoIds = venda.Itens.Select(i => i.ProdutoId).ToList();
-			var produtos = await _unitOfWork.Repository<Produto>()
-				.GetFilterAsync(p => produtoIds.Contains(p.Id), tracking: false);
-			var produtoDict = produtos.ToDictionary(p => p.Id, p => p.Nome);
+                        _logger.LogDebug("Venda {VendaId} encontrada com {QuantidadeItens} itens",
+                                id, venda.Itens.Count);
 
-			_logger.LogDebug("Venda {VendaId} encontrada com {QuantidadeItens} itens",
-				id, venda.Itens.Count);
+                        return venda;
+                }
 
-			return new VendaResponse
-			{
-				Id = venda.Id,
-				Cliente = new ClienteResumoResponse
-				{
-					Id = venda.Cliente.Id,
-					Nome = venda.Cliente.Nome,
-					Email = venda.Cliente.Email
-				},
-				DataVenda = venda.DataVenda,
-				ValorTotal = venda.ValorTotal,
-				Status = venda.Status.ToString(),
-				Itens = venda.Itens.Select(i => new ItemVendaResponse
-				{
-					Id = i.Id,
-					ProdutoId = i.ProdutoId,
-					ProdutoNome = produtoDict.GetValueOrDefault(i.ProdutoId, "Produto não encontrado"),
-					Quantidade = i.Quantidade,
-					PrecoUnitario = i.PrecoUnitario,
-					Subtotal = i.Subtotal
-				}).ToList()
-			};
-		}
+                public async Task<List<VendaResponse>> ListarVendasAsync()
+                {
+                        _logger.LogDebug("Listando todas as vendas");
 
-		public async Task<List<VendaResponse>> ListarVendasAsync()
-		{
-			_logger.LogDebug("Listando todas as vendas");
+                        var vendas = await _unitOfWork.Repository<Venda>()
+                                .QueryAsync(query => ProjectVendaResponse(query.AsNoTracking()));
 
-			var vendas = await _unitOfWork.Repository<Venda>()
-				.GetFilterAsync(v => true, tracking: false,
-					v => v.Cliente,
-					v => v.Itens);
-
-			var result = new List<VendaResponse>();
-			foreach (var venda in vendas)
-			{
-				var vendaResponse = await ObterVendaPorIdAsync(venda.Id);
-				if (vendaResponse != null)
-					result.Add(vendaResponse);
-			}
-
-			_logger.LogInformation("Encontradas {QuantidadeVendas} vendas", result.Count);
-			return result;
-		}
+                        _logger.LogInformation("Encontradas {QuantidadeVendas} vendas", vendas.Count);
+                        return vendas;
+                }
 
 		public async Task<List<VendaResponse>> ListarVendasPorClienteAsync(int clienteId)
 		{
@@ -218,23 +181,14 @@ namespace SimpleSalesAPI.Application.Services
 
 			_logger.LogDebug("Listando vendas do cliente {ClienteId}", clienteId);
 
-			var vendas = await _unitOfWork.Repository<Venda>()
-				.GetFilterAsync(v => v.ClienteId == clienteId, tracking: false,
-					v => v.Cliente,
-					v => v.Itens);
+                        var vendas = await _unitOfWork.Repository<Venda>()
+                                .QueryAsync(query => ProjectVendaResponse(
+                                        query.AsNoTracking().Where(v => v.ClienteId == clienteId)));
 
-			var result = new List<VendaResponse>();
-			foreach (var venda in vendas)
-			{
-				var vendaResponse = await ObterVendaPorIdAsync(venda.Id);
-				if (vendaResponse != null)
-					result.Add(vendaResponse);
-			}
-
-			_logger.LogInformation("Cliente {ClienteId} possui {QuantidadeVendas} vendas",
-				clienteId, result.Count);
-			return result;
-		}
+                        _logger.LogInformation("Cliente {ClienteId} possui {QuantidadeVendas} vendas",
+                                clienteId, vendas.Count);
+                        return vendas;
+                }
 
 		public async Task<List<VendaResponse>> ListarVendasPorStatusAsync(StatusVenda status)
 		{
@@ -246,23 +200,14 @@ namespace SimpleSalesAPI.Application.Services
 
 			_logger.LogDebug("Listando vendas com status {Status}", status);
 
-			var vendas = await _unitOfWork.Repository<Venda>()
-				.GetFilterAsync(v => v.Status == status, tracking: false,
-					v => v.Cliente,
-					v => v.Itens);
+                        var vendas = await _unitOfWork.Repository<Venda>()
+                                .QueryAsync(query => ProjectVendaResponse(
+                                        query.AsNoTracking().Where(v => v.Status == status)));
 
-			var result = new List<VendaResponse>();
-			foreach (var venda in vendas)
-			{
-				var vendaResponse = await ObterVendaPorIdAsync(venda.Id);
-				if (vendaResponse != null)
-					result.Add(vendaResponse);
-			}
-
-			_logger.LogInformation("Encontradas {QuantidadeVendas} vendas com status {Status}",
-				result.Count, status);
-			return result;
-		}
+                        _logger.LogInformation("Encontradas {QuantidadeVendas} vendas com status {Status}",
+                                vendas.Count, status);
+                        return vendas;
+                }
 
 		public async Task<List<VendaResponse>> ListarVendasPorPeriodoAsync(DateTime dataInicio, DateTime dataFim)
 		{
@@ -276,29 +221,17 @@ namespace SimpleSalesAPI.Application.Services
 			_logger.LogDebug("Listando vendas entre {DataInicio:yyyy-MM-dd} e {DataFim:yyyy-MM-dd}",
 				dataInicio, dataFim);
 
-			var vendas = await _unitOfWork.Repository<Venda>()
-				.GetFilterAsync(v => v.DataVenda >= dataInicio && v.DataVenda <= dataFim, tracking: false,
-					v => v.Cliente,
-					v => v.Itens);
+                        var vendas = await _unitOfWork.Repository<Venda>()
+                                .QueryAsync(query => ProjectVendaResponse(
+                                        query.AsNoTracking().Where(v => v.DataVenda >= dataInicio && v.DataVenda <= dataFim)));
 
-			var result = new List<VendaResponse>();
-			decimal valorTotalPeriodo = 0;
+                        var valorTotalPeriodo = vendas.Sum(v => v.ValorTotal);
 
-			foreach (var venda in vendas)
-			{
-				var vendaResponse = await ObterVendaPorIdAsync(venda.Id);
-				if (vendaResponse != null)
-				{
-					result.Add(vendaResponse);
-					valorTotalPeriodo += vendaResponse.ValorTotal;
-				}
-			}
-
-			_logger.LogInformation("Período {DataInicio:yyyy-MM-dd} a {DataFim:yyyy-MM-dd}: " +
-								 "{QuantidadeVendas} vendas, valor total {ValorTotal:C}",
-				dataInicio, dataFim, result.Count, valorTotalPeriodo);
-			return result;
-		}
+                        _logger.LogInformation("Período {DataInicio:yyyy-MM-dd} a {DataFim:yyyy-MM-dd}: " +
+                                                                 "{QuantidadeVendas} vendas, valor total {ValorTotal:C}",
+                                dataInicio, dataFim, vendas.Count, valorTotalPeriodo);
+                        return vendas;
+                }
 
 		public async Task ConfirmarVendaAsync(int id)
 		{
@@ -423,11 +356,11 @@ namespace SimpleSalesAPI.Application.Services
 			_logger.LogInformation("Venda {VendaId} marcada como entregue com sucesso", id);
 		}
 
-		public async Task ExcluirVendaAsync(int id)
-		{
-			using var activity = _logger.BeginScope(new Dictionary<string, object>
-			{
-				["Operation"] = nameof(ExcluirVendaAsync),
+                public async Task ExcluirVendaAsync(int id)
+                {
+                        using var activity = _logger.BeginScope(new Dictionary<string, object>
+                        {
+                                ["Operation"] = nameof(ExcluirVendaAsync),
 				["VendaId"] = id
 			});
 
@@ -470,10 +403,38 @@ namespace SimpleSalesAPI.Application.Services
 			}
 
 			_unitOfWork.Repository<Venda>().Remove(venda);
-			await _unitOfWork.CommitAsync();
+                        await _unitOfWork.CommitAsync();
 
-			_logger.LogWarning("Venda {VendaId} (valor {ValorTotal:C}) excluída permanentemente",
-				id, venda.ValorTotal);
-		}
-	}
+                        _logger.LogWarning("Venda {VendaId} (valor {ValorTotal:C}) excluída permanentemente",
+                                id, venda.ValorTotal);
+                }
+
+                private static IQueryable<VendaResponse> ProjectVendaResponse(IQueryable<Venda> query)
+                {
+                        return query.Select(v => new VendaResponse
+                        {
+                                Id = v.Id,
+                                Cliente = v.Cliente == null
+                                        ? new ClienteResumoResponse()
+                                        : new ClienteResumoResponse
+                                        {
+                                                Id = v.Cliente.Id,
+                                                Nome = v.Cliente.Nome,
+                                                Email = v.Cliente.Email
+                                        },
+                                DataVenda = v.DataVenda,
+                                ValorTotal = v.ValorTotal,
+                                Status = v.Status.ToString(),
+                                Itens = v.Itens.Select(i => new ItemVendaResponse
+                                {
+                                        Id = i.Id,
+                                        ProdutoId = i.ProdutoId,
+                                        ProdutoNome = i.Produto != null ? i.Produto.Nome : string.Empty,
+                                        Quantidade = i.Quantidade,
+                                        PrecoUnitario = i.PrecoUnitario,
+                                        Subtotal = i.Subtotal
+                                }).ToList()
+                        });
+                }
+        }
 }
