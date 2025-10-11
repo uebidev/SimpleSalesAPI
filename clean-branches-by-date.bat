@@ -8,7 +8,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 :: ========================================
 
 :: === Configurações iniciais ===
-set DATE_TARGET=2025-10-10
+set DATE_TARGET=2025-10-11
 echo 🧹 Limpando branches com data: %DATE_TARGET%
 echo.
 
