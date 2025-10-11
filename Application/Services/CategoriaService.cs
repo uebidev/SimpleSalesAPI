@@ -5,7 +5,7 @@ using SimpleSalesAPI.Application.Dtos.Responses;
 using SimpleSalesAPI.Application.Services.Interfaces;
 using SimpleSalesAPI.Domain.Exceptions;
 using SimpleSalesAPI.Domain.Models;
-using SimpleSalesAPI.Domain.Repositories;
+using SimpleSalesAPI.Infrastructure.Data.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;

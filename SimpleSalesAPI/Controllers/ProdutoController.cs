@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using SimpleSalesAPI.Application.Dtos.Requests;
 using SimpleSalesAPI.Application.Dtos.Responses;
 using SimpleSalesAPI.Application.Services.Interfaces;
+using SimpleSalesAPI.Domain.Exceptions;
+using SimpleSalesAPI.Domain.Models;
+using SimpleSalesAPI.Infrastructure.Data.Repositories.Interfaces;
 
 namespace SimpleSalesAPI.Controllers
 {
