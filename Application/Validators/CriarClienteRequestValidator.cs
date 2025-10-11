@@ -8,12 +8,14 @@ using System.Threading.Tasks;
 
 namespace SimpleSalesAPI.Application.Validators
 {
-
+	/// <summary>
+	/// Validação para clientes - Porque CRM com dados inválidos é piada!
+	/// </summary>
 	public class CriarClienteRequestValidator : AbstractValidator<CriarClienteRequest>
 	{
 		public CriarClienteRequestValidator()
 		{
-			
+			// Nome - Essencial para qualquer cliente
 			RuleFor(x => x.Nome)
 				.NotEmpty()
 				.WithMessage("Nome do cliente é obrigatório")
@@ -23,7 +25,7 @@ namespace SimpleSalesAPI.Application.Validators
 				.WithMessage("Nome deve conter apenas letras e espaços")
 				.WithErrorCode("INVALID_CLIENTE_NOME");
 
-		
+			// Email
 			RuleFor(x => x.Email)
 				.NotEmpty()
 				.WithMessage("Email é obrigatório")

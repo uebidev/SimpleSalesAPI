@@ -15,11 +15,13 @@ namespace SimpleSalesAPI.Application.Validators
 	{
 		public ItemVendaRequestValidator()
 		{
+			// Produto ID deve ser válido
 			RuleFor(x => x.ProdutoId)
 				.GreaterThan(0)
 				.WithMessage("ID do produto deve ser um valor positivo válido")
 				.WithErrorCode("INVALID_PRODUTO_ID");
 
+			// Quantidade 
 			RuleFor(x => x.Quantidade)
 				.GreaterThan(0)
 				.WithMessage("Quantidade deve ser maior que zero")

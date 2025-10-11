@@ -51,10 +51,11 @@ namespace SimpleSalesAPI.Infrastructure.Data.Configurations
 			builder.HasIndex(p => p.Ativo)
 				.HasDatabaseName("IX_Produtos_Ativo");
 
-
+			// Índice composto 
 			builder.HasIndex(p => new { p.CategoriaId, p.Ativo })
 				.HasDatabaseName("IX_Produtos_Categoria_Ativo");
 
+			// Relacionamento explícito
 			builder.HasOne(p => p.Categoria)
 				.WithMany(c => c.Produtos)
 				.HasForeignKey(p => p.CategoriaId)

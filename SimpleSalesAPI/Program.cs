@@ -1,7 +1,6 @@
 
 using Microsoft.AspNetCore.Builder;
 using MySqlConnector;
-using Scalar.AspNetCore;
 using Serilog;
 using SimpleSalesAPI.Application;
 using SimpleSalesAPI.Configuration;
@@ -22,9 +21,8 @@ namespace SimpleSalesAPI
 				Log.Information("Iniciando SimpleSalesAPI");
 
 				builder.Services.AddControllers();
-                builder.Services.AddOpenApi();
-                builder.Services.AddEndpointsApiExplorer();
-			
+				builder.Services.AddEndpointsApiExplorer();
+				builder.Services.AddSwaggerGen();
 			
 				builder.Services.AddApplication();
 				builder.Services.AddInfrastructure(builder.Configuration);
@@ -41,9 +39,9 @@ namespace SimpleSalesAPI
 
 				if (app.Environment.IsDevelopment())
 				{
-                    app.MapOpenApi();
-                    app.MapScalarApiReference();
-                }
+					app.UseSwagger();
+					app.UseSwaggerUI();
+				}
 
 				app.UseHttpsRedirection();
 
