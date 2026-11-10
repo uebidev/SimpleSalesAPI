@@ -1,5 +1,7 @@
 # 🛒 SimpleSalesAPI
 
+> ⚠️ **Projeto de estudo, não concluído.** Criado em setembro de 2025 enquanto eu aprendia Clean Architecture. Ficou parado no meio: algumas coisas citadas abaixo (como o rate limiting) não foram terminadas, e a separação de camadas tem pontos que eu faria diferente hoje.
+
 > **API REST robusta para gerenciamento de vendas com Clean Architecture, validações avançadas e patterns enterprise.**
 
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/)
